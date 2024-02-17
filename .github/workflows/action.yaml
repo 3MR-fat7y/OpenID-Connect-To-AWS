@@ -18,7 +18,7 @@ jobs:
       run:
         shell: bash
         working-directory: .
-        
+
     steps:
       - name: Git checkout
         uses: actions/checkout@v3
@@ -26,6 +26,6 @@ jobs:
       - name: Configure AWS credentials from AWS account
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE }}
+          role-to-assume: arn:aws:iam::462899301479:role/github-action-role-2
           aws-region: ${{ secrets.AWS_REGION }}
           role-session-name: GitHub-OIDC-TERRAFORM
