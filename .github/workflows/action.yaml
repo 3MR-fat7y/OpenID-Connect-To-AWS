@@ -1,47 +1,30 @@
-name: terraform-infra-provisioning
-
+name: "Terraform action"
 on:
-  workflow_dispatch:
   push:
-    branches: main
+    branches:
+      - main
   pull_request:
-
-
 permissions:
-  id-token: write
-  contents: read
-
+      id-token: write # This is required for aws oidc connection
+      contents: read # This is required for actions/checkout
+      pull-requests: write # This is required for gh bot to comment PR
+env:
+  TF_LOG: INFO
+  AWS_REGION: ${{ secrets.AWS_REGION }}
 jobs:
-  terraform:
-    name: 'continuous-integration'
+  deploy:
     runs-on: ubuntu-latest
-    environment: production
-    permissions:
-      pull-requests: write
-      id-token: write
-      contents: read
-    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
       run:
         shell: bash
-
+        working-directory: .
     steps:
-    # Checkout the repository to the GitHub Actions runner
-    - name: Checkout
-      uses: actions/checkout@v3
+      - name: Git checkout
+        uses: actions/checkout@v3
 
-    - name: Configure AWS Credentials Action For GitHub Actions
-      uses: aws-actions/configure-aws-credentials@v2
-      with:
-        role-to-assume: ${{ secrets.IAM_ROLE }}
-        role-session-name: AWSSession
-        aws-region: us-east-1
-
-    # Install the latest version of Terraform CLI and configure the Terraform CLI configuration file with a Terraform Cloud user API token
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v1
-
-    # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-    - name: Terraform Init
-      id: init
-      run: terraform init
+      - name: Configure AWS credentials from AWS account
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE }}
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-session-name: GitHub-OIDC-TERRAFORM
